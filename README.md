@@ -3,12 +3,13 @@ KLEESpectre is a symbolic execution engine with speculation semantics and cache 
 
 ## Publication 
 
->KLEESPECTRE: Detecting Information Leakage through Speculative Cache Attacks via Symbolic Execution. Guanhua Wang, Sudipta Chattopadhyay, Arnab Kumar Biswas, Tulika Mitra, Abhik Roychoudhury. arXiv preprint  arXiv:1909.00647. 2019. 
+> Guanhua Wang, Sudipta Chattopadhyay, Arnab Kumar Biswas, Tulika Mitra, Abhik Roychoudhury. KLEESPECTRE: Detecting Information Leakage through Speculative Cache Attacks via Symbolic Execution.arXiv:1909.00647. 
 
-Paper link: https://arxiv.org/abs/1909.00647
+Paper link: [kleespectre](https://arxiv.org/abs/1909.00647)
 
 ## Environment setting up. <br />
   KLEESpectre is based on the latest KLEE, which needs the support of LLVM-6.0.  <br />
+  NOTE: Suggest to refer "https://klee.github.io/build-llvm60/" to install all dependencies. 
   ### Install all the dependencies of LLVM 
 ```
 $sudo apt-get install build-essential curl libcap-dev git cmake libncurses5-dev python-minimal python-pip unzip libtcmalloc-minimal4 libgoogle-perftools-dev libsqlite3-dev doxygen 
@@ -154,4 +155,14 @@ Output:
 To test different cache configurations, the option `-cache-line-size=#` sets cache line size to #, the default value is 64. The Option `-cache-ways=#`  sets cache ways to #, default is 2. Option `-cache-sets=#` sets cache set to #, default value is 256. An example cache configuration is `-enable-cachemodel  -cache-ways=2 -cache-line-size=64 -cache-sets=256`. (Note that, the cache modeling only works with speculative path exploring enabled (`--enable-speculative`))
 KLEESpectre must be recompiled after this change.  The results are in [results_cache](results/kleespecrtre_with_cache.txt)
 
-
+# Using KLEESpectre with Docker
+##Building the Docker image locally
+```
+$ git clone https://github.com/winter2020/kleespectre.git
+$ cd klee
+$ docker build -t kleespectre/kleespectre .
+```
+##Creating a KLEE Docker container
+```
+docker run --rm -ti --ulimit='stack=-1:-1' klee/klee
+```
