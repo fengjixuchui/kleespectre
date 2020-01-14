@@ -8,24 +8,64 @@ KLEESpectre is a symbolic execution engine with speculation semantics and cache 
 Paper link: [kleespectre](https://arxiv.org/abs/1909.00647)
 
 ## Environment setting up. <br />
-  KLEESpectre is based on the latest KLEE, which needs the support of LLVM-6.0.  <br />
-  NOTE: Suggest to refer "https://klee.github.io/build-llvm60/" to install all dependencies. 
-  ### Install all the dependencies of LLVM 
+KLEESpectre is based on the latest KLEE, which needs the support of LLVM-6.0.  <br />
+NOTE: Suggest to refer "https://klee.github.io/build-llvm60/" to install all dependencies. 
+### Install all the dependencies of LLVM 
 ```
 $sudo apt-get install build-essential curl libcap-dev git cmake libncurses5-dev python-minimal python-pip unzip libtcmalloc-minimal4 libgoogle-perftools-dev libsqlite3-dev doxygen 
 $ pip3 install tabulate 
 ``` 
-  ### Install LLVM-6.0 <br />
+### Install LLVM-6.0 <br />
 ```
 $ sudo apt-get install clang-6.0 llvm-6.0 llvm-6.0-dev llvm-6.0-tools 
 ``` 
+ ### Install STP:
+ ```
+$ git clone https://github.com/stp/stp.git
+$ cd stp/
+$ mkdir build
+$ cd build
+$ mkdir build
+$ make -j 5
+$ sudo make install
+ ```
+### Install uClibc
+```
+$ git clone https://github.com/klee/klee-uclibc.git  
+$ cd klee-uclibc  
+$ ./configure --make-llvm-lib  
+$ make -j2  
+$ cd .. 
+```
 ## Build KLEEspectre. 
 ```
-$ cd klee/build 
-$ cp ../buid.sh . (or build_debug.sh for debug version) 
+$ git clone https://github.com/winter2020/kleespectre.git
+$ cd kleespectre/klee/
+$ mkdir build
+$ cd build
+$ cp ../buid.sh .  
+  # (or build_debug.sh for debug version) 
+ ```
+The content of build.sh 
+```
+cmake \
+  -DENABLE_SOLVER_STP=ON \
+  -DENABLE_POSIX_RUNTIME=ON \
+  -DENABLE_KLEE_UCLIBC=ON \
+  -DKLEE_UCLIBC_PATH=/PATH/TO/ULIBC \
+  -DLLVM_CONFIG_BINARY=/usr/lib/llvm-6.0/bin/llvm-config \
+  -DLLVMCC=/usr/bin/clang-6.0 \
+  -DLLVMCXX=/usr/bin/clang++-6.0 \
+  -DCMAKE_BUILD_TYPE=Release \
+  ..  
+```
+Change "/PATH/TO/ULIBC" to your ulibc path. 
+```
 $ ./buid.sh 
 $ make -j 10 
 ```    
+Now you can the "klee" in build/bin/
+
 ## Options to enable speculative execution and cache modeling 
 ```
 $ /PATH/TO/KLEE/ROOT/klee --help
@@ -43,7 +83,9 @@ These options impact the speculative paths exploring and the cache modeling
 ```
 ## Run a test without cache modelling: <br />
 ```
-/PATH/TO/KLEE/ROOT/klee -check-div-zero=false -check-overshift=false --search=randomsp --output-istats=true --enable-speculative --max-sew=50 --env-file=/home/wgh/fineTest/test.env --run-in-dir=/tmp/sandbox --simplify-sym-indices --write-cvcs --write-cov --output-module --max-memory=8000 --disable-inlining --optimize --use-forked-solver --use-cex-cache --only-output-states-covering-new --max-instruction-time=30     --max-time=43200 --watchdog --max-memory-inhibit=false --max-static-fork-pct=1 --max-static-solve-pct=1 --max-static-cpfork-pct=1 switch-type=internal ./aes.bc" 
+$ cd litmus/v01/
+$ clang-6.0 -emit-llvm -g -c test.c -o test.bc
+/PATH/TO/KLEE/ROOT/klee -check-div-zero=false -check-overshift=false --search=randomsp -enable-speculative  -max-sew=20 test.bc" 
 ```   
 "--enable-speculative" option enables the speculative paths exploring <br />
 "--max-sew=#" set the Specualtive Execution Windows (SEW) to # (default is 10, 50 and 100 are used in the paper.) <br />
@@ -159,10 +201,10 @@ KLEESpectre must be recompiled after this change.  The results are in [results_c
 ##Building the Docker image locally
 ```
 $ git clone https://github.com/winter2020/kleespectre.git
-$ cd klee
+$ cd kleespectre/klee
 $ docker build -t kleespectre/kleespectre .
 ```
-##Creating a KLEE Docker container
+##Creating a KLEEspectre Docker container
 ```
-docker run --rm -ti --ulimit='stack=-1:-1' klee/klee
+docker run --rm -ti --ulimit='stack=-1:-1' kleespectre/kleespectre
 ```
